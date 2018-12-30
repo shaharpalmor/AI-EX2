@@ -19,7 +19,7 @@ def train_data(tags,train,test):
     # list predection last column of test, the column to compare to
     #hamming_distance(train,test,list_check,list_prediction)
     #naive_bayes(train,test,list_check,list_prediction)
-    id3(tags,train, test, list_check, list_prediction)
+    #id3(tags,train, test, list_check, list_prediction)
 
 def hamming_distance(train,test,list_check,list_prediction):
     idx = 0
@@ -150,14 +150,15 @@ def id3(tags,train,test,list_check,list_prediction):
     else:
         defult = 'no'
     len_train = len(train[0])
+    dtl_algo(tags, train, defult)
     decision_tree = Decition_Tree(dtl_algo(tags,train,'no'))
-    decision_entropy = calc_entropy(yes, no, len_train)
+    #decision_entropy = calc_entropy(yes, no, len_train)
 
-    attributes_gain = []
-    for i in train_without_decision:
-        sub_entropy = check_attribute(i,list_prediction)
-        attributes_gain.append(decision_entropy-sub_entropy)
-    print(attributes_gain)
+    # attributes_gain = []
+    # for i in train_without_decision:
+    #     sub_entropy = check_attribute(i,list_prediction)
+    #     attributes_gain.append(decision_entropy-sub_entropy)
+    # print(attributes_gain)
 
     # p_train_yes = float(yes / len(train[0]))
     # p_train_no = float(no / len(train[0]))
@@ -172,21 +173,44 @@ def dtl_algo(attributes, examples, defult):
         else:
             train_without_decision.append(examples[i])
     set_decision = set(list_prediction)
-    if len(examples) > 1:
-        yes, no = calc_yes_and_no(list_prediction)
-        if yes > no:
+    yes, no = calc_yes_and_no(list_prediction)
+    if len(examples) == 0:
+        if yes> no:
             defult = 'yes'
+            return defult
         else:
             defult = 'no'
+            return defult
+    elif yes == 0:
+        defult = 'no'
+        return defult
+    elif no == 0:
+        defult = 'yes'
         return defult
     elif len(set_decision) == 1:
         return set_decision.pop()
+    else:
+        best,values = choose_attribute(attributes, train_without_decision,list_prediction)
+        tree = (best,values)
 
 
-    ### for now
     best = 'over cast'
     values = ['rain','sunny']
     return best,values
+
+def choose_attribute(attributes, examples,list_prediction):
+    optional_attributes = []
+    train = examples
+    train.append(list_prediction)
+    yes,no = calc_yes_and_no(list_prediction)
+    decision_entropy = calc_entropy(yes, no, train[0])
+    attributes_gain = []
+    for i in examples:
+        sub_entropy = check_attribute(i, list_prediction)
+        attributes_gain.append(decision_entropy - sub_entropy)
+        optional_attributes.append(attributes[i],attributes_gain[i])
+    print(optional_attributes)
+
 
 def check_attribute(column_attribute,list_prediction):
     values = set(column_attribute)
@@ -272,9 +296,9 @@ def read_file(filename):
         tags = []
         for i in range(len(array)):
             if i == len(array)-1:
-                tags.append(array[j].strip("\n"))
+                tags.append(array[i].strip("\n"))
             else:
-                tags.append(array[j])
+                tags.append(array[i])
     return tags,attributes
 
 def main_function():
