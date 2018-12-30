@@ -58,9 +58,12 @@ def hamming_distance(train,test,list_check,list_prediction):
         yes = 0
         no = 0
         new_list = [x[1] for x in list]
-
+        set_labels = set(list_prediction)
+        label = []
+        for i in set_labels:
+            label.append(i)
         for k in range(5):
-            if new_list[k] == 'no':
+            if new_list[k] == label[0]:
                 no += 1
             else:
                 yes +=1
