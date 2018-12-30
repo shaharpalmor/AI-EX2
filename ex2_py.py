@@ -18,8 +18,8 @@ def train_data(tags,train,test):
     # test = all test
     # list check = all test but decision column
     # list predection last column of test, the column to compare to
-    hamming_distance(train,test,list_check,list_prediction)
-    #naive_bayes(train,test,list_check,list_prediction)
+    #hamming_distance(train,test,list_check,list_prediction)
+    naive_bayes(train,test,list_check,list_prediction)
     #id3(tags,train, test, list_check, list_prediction)
 
 def hamming_distance(train,test,list_check,list_prediction):
@@ -76,62 +76,63 @@ def hamming_distance(train,test,list_check,list_prediction):
 def naive_bayes(train,test,list_check,list_prediction):
     list_naive_bayes_result = []
     yes = no = p_train_yes = p_train_no = idx = 0
+    set_labels = set(list_prediction)
+    label = []
+    for i in set_labels:
+        label.append(i)
+
     for i in range(len(train)):
         if i == len(train) - 1:
             list_prediction = train[i]
     for j in list_prediction:
-        if j == 'yes':
+        if j == label[0]:
             yes += 1
         else:
             no += 1
     p_train_yes = float(yes/len(train[0]))
     p_train_no = float(no/len(train[0]))
+    a = len(list_check)
     for k in range(len(list_check[idx])):
-        class_type = list_check[idx][k]
-        age_type = list_check[idx + 1][k]
-        gender_type = list_check[idx + 2][k]
-
+        params = []
+        while idx < a:
+            params.append(list_check[idx][k])
+            idx += 1
         idx = 0
         list = []
-        counterYes1 = counterYes2 = counterYes3 = 0
-        counterNo1 = counterNo2 = counterNo3 = 0
-        prob1_yes = prob2_yes = prob3_yes = 0
-        prob1_no = prob2_no = prob3_no = 0
-        p_example_yes = p_example_no = 0
+        counter_yes = [0] * a
+        counter_no = [0] * a
         u = 0
         train_len = len(train[u])
         for j in range(len(train[u])):
-            t_class_type = train[u][j]
-            t_age_type = train[u + 1][j]
-            t_gender_type = train[u + 2][j]
-            classification = train[u + 3][j]
-            if class_type == t_class_type and classification == 'yes':
-                counterYes1 += 1
-            if age_type == t_age_type and classification == 'yes':
-                counterYes2 += 1
-            if gender_type == t_gender_type and classification == 'yes':
-                counterYes3 += 1
-            if class_type == t_class_type and classification == 'no':
-                counterNo1 += 1
-            if age_type == t_age_type and classification == 'no':
-                counterNo2 += 1
-            if gender_type == t_gender_type and classification == 'no':
-                counterNo3 += 1
-
-        prob1_yes = float(counterYes1/yes)
-        prob2_yes = float(counterYes2 / yes)
-        prob3_yes = float(counterYes3 / yes)
-        prob1_no = float(counterNo1 / no)
-        prob2_no = float(counterNo2 / no)
-        prob3_no = float(counterNo3 / no)
-
-        p_example_yes = p_train_yes * prob1_yes * prob2_yes * prob3_yes
-        p_example_no = p_train_no * prob1_no * prob2_no * prob3_no
+            t_param = []
+            while u < a:
+                t_param.append(train[u][j])
+                u += 1
+            t_param.append(train[u][j])
+            for i in range(a):
+                if params[i] == t_param[i]:
+                    if t_param[u] == label[0]:
+                        counter_yes[i]+=1
+                    else:
+                        counter_no[i]+=1
+            u=0
+        prob_yes = [0] * a
+        prob_no = [0] * a
+        temp_yes = 1
+        temp_no = 1
+        for i in range(a):
+            prob_yes[i] = float(counter_yes[i]/yes)
+            prob_no[i] = float(counter_no[i]/no)
+        for i in range(a):
+            temp_yes*=prob_yes[i]
+            temp_no*=prob_no[i]
+        p_example_yes = p_train_yes * temp_yes
+        p_example_no = p_train_no * temp_no
 
         if p_example_no > p_example_yes:
-            list_naive_bayes_result.append('no')
+            list_naive_bayes_result.append(label[1])
         else:
-            list_naive_bayes_result.append('yes')
+            list_naive_bayes_result.append(label[0])
     print(list_naive_bayes_result)
     calcAccuracy(test,list_naive_bayes_result)
 
