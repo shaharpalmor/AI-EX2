@@ -1,5 +1,7 @@
-class Decition_Tree:
+class Decition_Tree(object):
 
-    def _init_(self, attribute, values):
-        attribute = attribute
-        values = values
+    def __init__(self, attribute, values,level):
+
+        self.attribute = attribute
+        self.values = values
+        self.level = level

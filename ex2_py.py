@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import math as math
+import operator as operator
 from DTL import Decition_Tree
 def train_data(tags,train,test):
     list_check = []
@@ -17,43 +18,41 @@ def train_data(tags,train,test):
     # test = all test
     # list check = all test but decision column
     # list predection last column of test, the column to compare to
-    #hamming_distance(train,test,list_check,list_prediction)
+    hamming_distance(train,test,list_check,list_prediction)
     #naive_bayes(train,test,list_check,list_prediction)
     #id3(tags,train, test, list_check, list_prediction)
 
 def hamming_distance(train,test,list_check,list_prediction):
     idx = 0
     list_knn_result = []
-    #print(range(len(list_check[0])))
     print(list_knn_result)
+    a = len(list_check)
     for k in range(len(list_check[idx])):
-        class_type = list_check[idx][k]
-        age_type = list_check[idx + 1][k]
-        gender_type = list_check[idx + 2][k]
-        #enter tyuv
-
+        params = []
+        while idx < a:
+            params.append(list_check[idx][k])
+            idx+=1
         idx =0
         list = []
         counter = 0
         u=0
+        b = len(train)
         for j in range(len(train[u])):
-            t_class_type = train[u][j]
-            t_age_type = train[u+1][j]
-            t_gender_type = train[u+2][j]
-            t_decision = train[u + 3][j]
-            if class_type !=t_class_type:
-                counter +=1
-            if age_type != t_age_type:
-                counter +=1
-            if gender_type !=t_gender_type:
-                counter+=1
+            t_param = []
+
+            while u < a:
+                t_param.append(train[u][j])
+                u += 1
+            t_param.append(train[u][j])
+            for i in range(a):
+                if params[i]!=t_param[i]:
+                    counter += 1
             if counter == 0:
-                list.append((counter,t_decision))
+                 list.append((counter,t_param[a]))
             else:
-                list.append((counter,t_decision))
+                list.append((counter,t_param[a]))
             counter = 0
-        #list.sort()
-        import operator
+            u = 0
         list.sort(key=operator.itemgetter(0))
 
         yes = 0
@@ -134,7 +133,7 @@ def naive_bayes(train,test,list_check,list_prediction):
     calcAccuracy(test,list_naive_bayes_result)
 
 def id3(tags,train,test,list_check,list_prediction):
-    list_id3 = []
+
     train_without_decision = []
     yes = no = p_train_yes = p_train_no =  0
     for i in range(len(train)):
@@ -152,19 +151,11 @@ def id3(tags,train,test,list_check,list_prediction):
     len_train = len(train[0])
     dtl_algo(tags, train, defult)
     decision_tree = Decition_Tree(dtl_algo(tags,train,'no'))
-    #decision_entropy = calc_entropy(yes, no, len_train)
-
-    # attributes_gain = []
-    # for i in train_without_decision:
-    #     sub_entropy = check_attribute(i,list_prediction)
-    #     attributes_gain.append(decision_entropy-sub_entropy)
-    # print(attributes_gain)
-
-    # p_train_yes = float(yes / len(train[0]))
-    # p_train_no = float(no / len(train[0]))
 
 
 def dtl_algo(attributes, examples, defult):
+    list_id3 = []
+    level = 0
     train_without_decision = []
     for i in range(len(examples)):
         if i == len(examples) - 1:
@@ -191,25 +182,48 @@ def dtl_algo(attributes, examples, defult):
         return set_decision.pop()
     else:
         best,values = choose_attribute(attributes, train_without_decision,list_prediction)
-        tree = (best,values)
+        root = Decition_Tree(best,values,level)
+        list_id3.append(root)
+        level += 1
 
-
-    best = 'over cast'
-    values = ['rain','sunny']
+        new_attributes = []
+        new_examples = []
+        j = 0
+        for i in attributes:
+            if i != best:
+                new_attributes.append(i)
+            else:
+                column = j
+            j += 1
+        j = 0
+        for i in train_without_decision:
+            if j != column:
+                new_examples.append(i)
+            else:
+                set = set(examples[column])
+        for val in set:
+            best,values = dtl_algo(new_attributes,new_examples,defult)
+            list_id3.append(Decition_Tree.__init__(best, values, level))
+        level +=1
     return best,values
 
 def choose_attribute(attributes, examples,list_prediction):
     optional_attributes = []
     train = examples
-    train.append(list_prediction)
     yes,no = calc_yes_and_no(list_prediction)
-    decision_entropy = calc_entropy(yes, no, train[0])
+    decision_entropy = calc_entropy(yes, no, len(train[0]))
     attributes_gain = []
+    j = 0
     for i in examples:
         sub_entropy = check_attribute(i, list_prediction)
         attributes_gain.append(decision_entropy - sub_entropy)
-        optional_attributes.append(attributes[i],attributes_gain[i])
-    print(optional_attributes)
+        optional_attributes.append((attributes[j],attributes_gain[j]))
+        j+=1
+    j=0
+    optional_attributes.sort(reverse=True,key=operator.itemgetter(1))
+    return optional_attributes[j]
+
+
 
 
 def check_attribute(column_attribute,list_prediction):
