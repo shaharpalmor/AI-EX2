@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import math as math
-def train_data(train,test):
+from DTL import Decition_Tree
+def train_data(tags,train,test):
     list_check = []
     for i in range(len(train)):
         if i == len(train)-1:
@@ -16,9 +17,9 @@ def train_data(train,test):
     # test = all test
     # list check = all test but decision column
     # list predection last column of test, the column to compare to
-    ##hamming_distance(train,test,list_check,list_prediction)
-    ##naive_bayes(train,test,list_check,list_prediction)
-    id3(train, test, list_check, list_prediction,defult)
+    #hamming_distance(train,test,list_check,list_prediction)
+    #naive_bayes(train,test,list_check,list_prediction)
+    id3(tags,train, test, list_check, list_prediction)
 
 def hamming_distance(train,test,list_check,list_prediction):
     idx = 0
@@ -132,7 +133,7 @@ def naive_bayes(train,test,list_check,list_prediction):
     print(list_naive_bayes_result)
     calcAccuracy(test,list_naive_bayes_result)
 
-def id3(train,test,list_check,list_prediction,defult):
+def id3(tags,train,test,list_check,list_prediction):
     list_id3 = []
     train_without_decision = []
     yes = no = p_train_yes = p_train_no =  0
@@ -143,26 +144,33 @@ def id3(train,test,list_check,list_prediction,defult):
         else:
             train_without_decision.append(train[i])
 
-    for j in list_prediction:
-        if j == 'yes':
-            yes += 1
-        else:
-            no += 1
+    yes,no = calc_yes_and_no(list_prediction)
     if yes > no:
         defult = 'yes'
     else:
         defult = 'no'
     len_train = len(train[0])
-    decision_entropy = calc_entropy(yes,no,len_train)
+    decision_tree = Decition_Tree(dtl_algo(tags,train_without_decision,'no'))
+    decision_entropy = calc_entropy(yes, no, len_train)
+
     attributes_gain = []
     for i in train_without_decision:
         sub_entropy = check_attribute(i,list_prediction)
         attributes_gain.append(decision_entropy-sub_entropy)
     print(attributes_gain)
-    # הגעתי למצב שיש לי את הגיין מהאטרביוטים ואני צריכה לבחור עם מי ללכת שיהיו בראש העץ \
-    #ועכשיו אני צריכה לבחור מי הבא שיהיה וזאת הרקורסיה כנראה
+
     # p_train_yes = float(yes / len(train[0]))
     # p_train_no = float(no / len(train[0]))
+
+
+def dtl_algo(attributes, examples, defult):
+    #if len(examples) == 0:
+        #return defult
+
+
+    best = 'over cast'
+    values = ['rain','sunny']
+    return best,values
 
 def check_attribute(column_attribute,list_prediction):
     values = set(column_attribute)
@@ -203,6 +211,9 @@ def calc_yes_and_no(list_prediction):
             no += 1
     return yes,no
 
+
+
+
 def calcAccuracy(test, list_algo):
     for i in range(len(test)):
         if i == len(test) - 1:
@@ -242,11 +253,17 @@ def read_file(filename):
                     attributes[i].append(values[i].strip("\n"))
                 else:
                     attributes[i].append(values[i])
-    return attributes
+        tags = []
+        for i in range(len(array)):
+            if i == len(array)-1:
+                tags.append(array[j].strip("\n"))
+            else:
+                tags.append(array[j])
+    return tags,attributes
 
 def main_function():
-    attributes = read_file("train.txt")
-    tests = read_file("test.txt")
-    train_data(attributes,tests)
+    tags,attributes = read_file("train.txt")
+    tags_test,tests = read_file("test.txt")
+    train_data(tags,attributes,tests)
 
 main_function()
