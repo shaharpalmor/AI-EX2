@@ -150,7 +150,7 @@ def id3(tags,train,test,list_check,list_prediction):
     else:
         defult = 'no'
     len_train = len(train[0])
-    decision_tree = Decition_Tree(dtl_algo(tags,train_without_decision,'no'))
+    decision_tree = Decition_Tree(dtl_algo(tags,train,'no'))
     decision_entropy = calc_entropy(yes, no, len_train)
 
     attributes_gain = []
@@ -164,10 +164,26 @@ def id3(tags,train,test,list_check,list_prediction):
 
 
 def dtl_algo(attributes, examples, defult):
-    #if len(examples) == 0:
-        #return defult
+    train_without_decision = []
+    for i in range(len(examples)):
+        if i == len(examples) - 1:
+            # classify of last column in train
+            list_prediction = examples[i]
+        else:
+            train_without_decision.append(examples[i])
+    set_decision = set(list_prediction)
+    if len(examples) > 1:
+        yes, no = calc_yes_and_no(list_prediction)
+        if yes > no:
+            defult = 'yes'
+        else:
+            defult = 'no'
+        return defult
+    elif len(set_decision) == 1:
+        return set_decision.pop()
 
 
+    ### for now
     best = 'over cast'
     values = ['rain','sunny']
     return best,values
