@@ -8,10 +8,8 @@ def train_data(tags,train,test):
     for i in range(len(train)):
         if i == len(train)-1:
             list_prediction = test[i]
-            #print(test[i])
         else:
             list_check.append(test[i])
-            #print(test[i])
     length = len(test)
     print(list_check)
     # train = all data
@@ -62,6 +60,7 @@ def hamming_distance(train,test,list_check,list_prediction):
         label = []
         for i in set_labels:
             label.append(i)
+        label.sort()
         for k in range(5):
             if new_list[k] == label[0]:
                 no += 1
@@ -80,15 +79,15 @@ def naive_bayes(train,test,list_check,list_prediction):
     label = []
     for i in set_labels:
         label.append(i)
-
+    label.sort()
     for i in range(len(train)):
         if i == len(train) - 1:
             list_prediction = train[i]
     for j in list_prediction:
         if j == label[0]:
-            yes += 1
-        else:
             no += 1
+        else:
+            yes += 1
     p_train_yes = float(yes/len(train[0]))
     p_train_no = float(no/len(train[0]))
     a = len(list_check)
@@ -111,7 +110,7 @@ def naive_bayes(train,test,list_check,list_prediction):
             t_param.append(train[u][j])
             for i in range(a):
                 if params[i] == t_param[i]:
-                    if t_param[u] == label[0]:
+                    if t_param[u] == label[1]:
                         counter_yes[i]+=1
                     else:
                         counter_no[i]+=1
@@ -130,14 +129,13 @@ def naive_bayes(train,test,list_check,list_prediction):
         p_example_no = p_train_no * temp_no
 
         if p_example_no > p_example_yes:
-            list_naive_bayes_result.append(label[1])
-        else:
             list_naive_bayes_result.append(label[0])
+        else:
+            list_naive_bayes_result.append(label[1])
     print(list_naive_bayes_result)
     calcAccuracy(test,list_naive_bayes_result)
 
 def id3(tags,train,test,list_check,list_prediction):
-
     train_without_decision = []
     yes = no = p_train_yes = p_train_no =  0
     for i in range(len(train)):
@@ -146,6 +144,10 @@ def id3(tags,train,test,list_check,list_prediction):
             list_prediction = train[i]
         else:
             train_without_decision.append(train[i])
+    set_labels = set(list_prediction)
+    label = []
+    for i in set_labels:
+        label.append(i)
 
     yes,no = calc_yes_and_no(list_prediction)
     if yes > no:
