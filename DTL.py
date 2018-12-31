@@ -1,7 +1,7 @@
-class Decition_Tree(object):
+class Node(object):
 
-    def __init__(self, attribute, values,level):
-
+    def __init__(self, attribute, values):
         self.attribute = attribute
-        self.values = values
-        self.level = level
+        self.values =[]
+
+
