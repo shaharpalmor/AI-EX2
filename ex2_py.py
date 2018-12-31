@@ -16,9 +16,9 @@ def train_data(tags,train,test):
     # test = all test
     # list check = all test but decision column
     # list predection last column of test, the column to compare to
-    #hamming_distance(train,test,list_check,list_prediction)
+    hamming_distance(train,test,list_check,list_prediction)
     #naive_bayes(train,test,list_check,list_prediction)
-    before_id3(train,tags,defult = 0)
+    #before_id3(train,tags,defult = 0)
 
 def hamming_distance(train,test,list_check,list_prediction):
     idx = 0
@@ -53,23 +53,21 @@ def hamming_distance(train,test,list_check,list_prediction):
             u = 0
         list.sort(key=operator.itemgetter(0))
 
-        yes = 0
-        no = 0
         new_list = [x[1] for x in list]
         set_labels = set(list_prediction)
         label = []
         for i in set_labels:
             label.append(i)
         label.sort()
+        array = [0]*len(label)
         for k in range(5):
-            if new_list[k] == label[0]:
-                no += 1
-            else:
-                yes +=1
-        if yes > no:
-            list_knn_result.append('yes')
-        else:
-            list_knn_result.append('no')
+            for i in range(len(label)):
+                if new_list[k] == label[i]:
+                    array[i]+=1
+        maximum = max(array)
+        for i in range(len(array)):
+            if array[i] == maximum:
+                list_knn_result.append(label[i])
     calcAccuracy(test, list_knn_result)
 
 def naive_bayes(train,test,list_check,list_prediction):
