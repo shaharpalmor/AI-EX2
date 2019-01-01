@@ -15,8 +15,6 @@ def train_data(tags, train, test):
             list_prediction = test[i]
         else:
             list_check.append(test[i])
-    print(list_check)
-    print(list_prediction)
     # train = all data
     # test = all test
     # list check = all test but decision column
@@ -24,7 +22,7 @@ def train_data(tags, train, test):
     #k = KNN_algo()
     #k.hamming_distance(train,test,list_check,list_prediction)
     #naive_bayes(train,test,list_check,list_prediction)
-    before_id3(train, test, tags, defult=0)
+    before_id3(train, test,list_check,list_prediction, tags, defult=0)
 
 
 # def hamming_distance(train, test, list_check, list_prediction):
@@ -76,7 +74,6 @@ def train_data(tags, train, test):
 #             if array[i] == maximum:
 #                 list_knn_result.append(label[i])
 #     calcAccuracy(test, list_knn_result)
-
 
 def naive_bayes(train, test, list_check, list_prediction):
     list_naive_bayes_result = []
@@ -141,13 +138,73 @@ def naive_bayes(train, test, list_check, list_prediction):
     # print(list_naive_bayes_result)
     calcAccuracy(test, list_naive_bayes_result)
 
+def before_id3(train, test,list_check,list_prediction ,tags, defult):
+    d_tree = []
+    id3(train, tags, defult, d_tree, None, None, None)
+    root = d_tree[0]
+    examples = []
+    # check the test on the root of the tree
+    for i in range(len(list_check[0])):
+        variable = [x[i] for x in list_check]
+        examples.append(variable)
+    result = check_test(root,tags,train,examples)
 
-def before_id3(train, test ,tags, defult):
-    tree = []
-    id3(train, tags, defult, tree, None, None, None)
-    root = tree[0]
-    print("made it")
+def check_test(root,tags,train,examples):
+    dict_tags_values = {}
+    list_values = []
+    result = []
+    for i in range(len(tags)-1):
+        set_values = set(train[i])
+        list_values = set_values
+        dict_tags_values[tags[i]] = list_values
+    list_attributes = []
+    order = get_attributes_order(tags,root,list_attributes)
+    fix_examples = []
+    for i in range(len(examples)):
+        current = examples[i]
+        fix = []
+        for attribute in order:
+            for key, values in dict_tags_values.items():  # for name, age in dictionary.iteritems():  (for Python 2.x)
+                if key == attribute:
+                    for quality in current:
+                        for val in values:
+                            if quality == val:
+                                fix.append(quality)
+        fix_examples.append(fix)
+    temp_root = root
+    tag = next(iter(temp_root.dict))
+    ####איך לקבל את הבא בתוך בתוך הדיקט שהוא אובג'ק
+    temp_root = temp_root.dict[tag]
+    for i in range(len(fix_examples)):
+        current = fix_examples[i]
+        while temp_root != None:
+            for i in current:
+                if tag == 'yes' or tag =='no':
+                    result.append(tag)
+                    break
+                if i == tag:
+                    tag = next(iter(temp_root.dict))
+                    temp_root = temp_root[tag]
+                else:
+                    tag = next(iter(temp_root.dict))
+                    temp_root = temp_root[tag]
 
+
+def get_attributes_order(tags,root,list_attributes):
+    temp_root = root
+    while temp_root.attribute[0] != None and len(list_attributes) != len(tags) - 1:
+        if len(list_attributes) == len(tags) - 1:
+            break
+        print(temp_root.attribute[0])
+        for i in tags:
+            if temp_root.attribute[0] == i:
+                list_attributes.append(i)
+                break
+        if len(list_attributes) == len(tags) - 1:
+            break
+        tag = next(iter(temp_root.dict))
+        temp_root = temp_root.dict[tag]
+    return list_attributes
 
 def id3(train, tags, defult, tree, father, type_developed, father_node=None):
 
@@ -224,13 +281,10 @@ def id3(train, tags, defult, tree, father, type_developed, father_node=None):
         value = set_type_developed.pop()
         id3(training, tags, defult, tree, best, value, node)
 
-
-
 def get_values_of_attribute(best, tags, train):
     for i in range(len(tags)):
         if best == tags[i]:
             return set(train[i])
-
 
 def choose_attribute(attributes, examples, list_prediction):
     p_predictions = calc_predictions(list_prediction)
@@ -270,7 +324,6 @@ def choose_attribute(attributes, examples, list_prediction):
 
     return optional_attributes[j]
 
-
 def calc_entropy(p_list):
     entropy = []
     total = sum(p_list)
@@ -285,7 +338,6 @@ def calc_entropy(p_list):
         sum1 += entropy[j]
     return sum1
 
-
 def calc_predictions(list_prediction):
     labels = set(list_prediction)
     list_lables = p_list = []
@@ -299,7 +351,6 @@ def calc_predictions(list_prediction):
             if list_prediction[j] == list_lables[i]:
                 list[i] += 1
     return list
-
 
 def calc_predictions_with_decision(list_prediction, decision):
     labels = set(list_prediction)
@@ -326,7 +377,6 @@ def calc_predictions_with_decision(list_prediction, decision):
                         list[index2][index3] += 1
     return list, list_lables
 
-
 def calc_yes_and_no(list_prediction):
     yes = no = 0
     for j in list_prediction:
@@ -335,7 +385,6 @@ def calc_yes_and_no(list_prediction):
         else:
             no += 1
     return yes, no
-
 
 def calcAccuracy(test, list_algo):
     for i in range(len(test)):
@@ -351,7 +400,6 @@ def calcAccuracy(test, list_algo):
     accuracy = float(counter / len(test[0]))
     print(accuracy)
     return accuracy
-
 
 def read_file(filename):
     file = open(filename, "r")

@@ -12,7 +12,6 @@ class KNN_algo:
 
         counter = 0
         accuracy = 0
-        # print(range(len(test[0])))
         for i in range(len(test[0])):
             if list_algo[i] == list_prediction[i]:
                 counter += 1
