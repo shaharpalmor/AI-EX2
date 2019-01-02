@@ -148,6 +148,8 @@ def before_id3(train, test,list_check,list_prediction ,tags, defult):
         variable = [x[i] for x in list_check]
         examples.append(variable)
     result = check_test(root,tags,train,examples)
+    calcAccuracy(test,result)
+    print()
 
 def check_test(root,tags,train,examples):
     dict_tags_values = {}
@@ -172,22 +174,23 @@ def check_test(root,tags,train,examples):
                                 fix.append(quality)
         fix_examples.append(fix)
     temp_root = root
-    tag = next(iter(temp_root.dict))
-    ####איך לקבל את הבא בתוך בתוך הדיקט שהוא אובג'ק
-    temp_root = temp_root.dict[tag]
-    for i in range(len(fix_examples)):
-        current = fix_examples[i]
-        while temp_root != None:
+    prev = temp_root
+    for j in range(len(fix_examples)):
+        current = fix_examples[j]
+        temp_root = root
+        prev = temp_root
+        while any(temp_root.dict) != False:
             for i in current:
-                if tag == 'yes' or tag =='no':
-                    result.append(tag)
+                temp_root = prev.dict[i]
+                if temp_root.attribute == 'yes' or temp_root.attribute == 'no':
+                    result.append(temp_root.attribute)
                     break
-                if i == tag:
-                    tag = next(iter(temp_root.dict))
-                    temp_root = temp_root[tag]
                 else:
+                    prev = temp_root
                     tag = next(iter(temp_root.dict))
-                    temp_root = temp_root[tag]
+                    temp_root = temp_root.dict[tag]
+    print(result)
+    return result
 
 
 def get_attributes_order(tags,root,list_attributes):
