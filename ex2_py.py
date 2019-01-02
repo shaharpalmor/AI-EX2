@@ -21,8 +21,8 @@ def train_data(tags, train, test):
     # list predection last column of test, the column to compare to
     #k = KNN_algo()
     #k.hamming_distance(train,test,list_check,list_prediction)
-    naive_bayes(train,test,list_check,list_prediction)
-    #before_id3(train, test,list_check,list_prediction, tags, defult=0)
+    #naive_bayes(train,test,list_check,list_prediction)
+    before_id3(train, test,list_check,list_prediction, tags, defult=0)
 
 
 # def hamming_distance(train, test, list_check, list_prediction):
@@ -140,7 +140,6 @@ def naive_bayes(train, test, list_check, list_prediction):
                 list_naive_bayes_result.append(label[1])
         else:
             list_naive_bayes_result.append(label[1])
-    # print(list_naive_bayes_result)
     calcAccuracy(test, list_naive_bayes_result)
 
 def before_id3(train, test,list_check,list_prediction ,tags, defult):
@@ -152,9 +151,55 @@ def before_id3(train, test,list_check,list_prediction ,tags, defult):
     for i in range(len(list_check[0])):
         variable = [x[i] for x in list_check]
         examples.append(variable)
-    result = check_test(root,tags,train,examples)
+    # result is the prediction of the decision tree
+    result, dict_tags_values, list_tracks= check_test(root,tags,train,examples)
+    tracks = ramove_repeat_track(list_tracks)
+    #print_tracks(tracks,dict_tags_values,1)
+    #new_tracks = sort_tracks(tracks,dict_tags_values)
+    #print(tracks)
     calcAccuracy(test,result)
     print()
+
+def print_tracks(tracks,dict_tags_values,tab):
+    printer = ""
+    for track in tracks:
+        for item in range(len(track)):
+
+            if track[item] in dict_tags_values.keys():
+                printer += track[item] +"="
+            elif track[item] in dict_tags_values.values():
+                next =item+1
+                printer+= track[item] +":"
+                if track[next] in dict_tags_values.keys():
+                    #stop here
+                    print()
+            elif track[item] == 'yes' or 'no':
+                printer += track[item]+ '\n'
+
+
+def sort_tracks(tracks,dict_tags_values):
+    print(dict_tags_values)
+    new_tracks = []
+    while len(tracks)!=len(new_tracks):
+        for track in tracks:
+            print()
+
+
+def ramove_repeat_track(list_tracks):
+    tracks = []
+    for list in list_tracks:
+        if len(tracks) == 0:
+            tracks.append(list)
+        flag = 0
+        for l in tracks:
+            for item in range(len(l)):
+                if l == list:
+                    flag = 1
+                    break
+        if not flag:
+            tracks.append(list)
+
+    return tracks
 
 def check_test(root,tags,train,examples):
     dict_tags_values = {}
@@ -178,25 +223,32 @@ def check_test(root,tags,train,examples):
                             if quality == val:
                                 fix.append(quality)
         fix_examples.append(fix)
+    list_tracks = []
     temp_root = root
     prev = temp_root
     for j in range(len(fix_examples)):
+        list = []
         current = fix_examples[j]
         temp_root = root
         prev = temp_root
         while any(temp_root.dict) != False:
+            list.append(temp_root.attribute[0])
+
             for i in current:
+                list.append(i)
                 temp_root = prev.dict[i]
                 if temp_root.attribute == 'yes' or temp_root.attribute == 'no':
+                    list.append(temp_root.attribute)
                     result.append(temp_root.attribute)
                     break
                 else:
                     prev = temp_root
+                    list.append(prev.attribute[0])
                     tag = next(iter(temp_root.dict))
                     temp_root = temp_root.dict[tag]
-    print(result)
-    return result
-
+        list_tracks.append(list)
+    print(list_tracks)
+    return result,dict_tags_values, list_tracks
 
 def get_attributes_order(tags,root,list_attributes):
     temp_root = root
