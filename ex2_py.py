@@ -21,8 +21,8 @@ def train_data(tags, train, test):
     # list predection last column of test, the column to compare to
     #k = KNN_algo()
     #k.hamming_distance(train,test,list_check,list_prediction)
-    #naive_bayes(train,test,list_check,list_prediction)
-    before_id3(train, test,list_check,list_prediction, tags, defult=0)
+    naive_bayes(train,test,list_check,list_prediction)
+    #before_id3(train, test,list_check,list_prediction, tags, defult=0)
 
 
 # def hamming_distance(train, test, list_check, list_prediction):
@@ -133,6 +133,11 @@ def naive_bayes(train, test, list_check, list_prediction):
 
         if p_example_no > p_example_yes:
             list_naive_bayes_result.append(label[0])
+        elif p_example_no == p_example_yes:
+            if p_train_no> p_train_yes:
+                list_naive_bayes_result.append(label[0])
+            else:
+                list_naive_bayes_result.append(label[1])
         else:
             list_naive_bayes_result.append(label[1])
     # print(list_naive_bayes_result)
@@ -401,6 +406,7 @@ def calcAccuracy(test, list_algo):
         if list_algo[i] == list_prediction[i]:
             counter += 1
     accuracy = float(counter / len(test[0]))
+    accuracy = str(round(accuracy, 2))
     print(accuracy)
     return accuracy
 
