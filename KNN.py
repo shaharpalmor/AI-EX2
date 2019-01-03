@@ -16,7 +16,6 @@ class KNN_algo:
             if list_algo[i] == list_prediction[i]:
                 counter += 1
         accuracy = float(counter / len(test[0]))
-        print(accuracy)
         return accuracy
 
     def hamming_distance(self, train, test, list_check, list_prediction):
@@ -67,5 +66,5 @@ class KNN_algo:
             for i in range(len(array)):
                 if array[i] == maximum:
                     list_knn_result.append(label[i])
-        self.calcAccuracy(test, list_knn_result)
-
+        accuracy = self.calcAccuracy(test, list_knn_result)
+        return list_knn_result, accuracy

@@ -19,61 +19,22 @@ def train_data(tags, train, test):
     # test = all test
     # list check = all test but decision column
     # list predection last column of test, the column to compare to
-    # k = KNN_algo()
-    # k.hamming_distance(train,test,list_check,list_prediction)
-    # naive_bayes(train,test,list_check,list_prediction)
-    before_id3(train, test, list_check, list_prediction, tags, defult=0)
+    output = open("output_shahar.txt","a")
+    k = KNN_algo()
+    knn_list,knn_accuracy = k.hamming_distance(train,test,list_check,list_prediction)
+    nb_list, nb_accuracy = naive_bayes(train,test,list_check,list_prediction)
+    dt_list, dt_accuracy = before_id3(train, test, list_check, list_prediction, tags, defult=0)
+    create_output_file(output ,knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy)
 
 
-# def hamming_distance(train, test, list_check, list_prediction):
-#     idx = 0
-#     list_knn_result = []
-#     # print(list_knn_result)
-#     a = len(list_check)
-#     for k in range(len(list_check[idx])):
-#         params = []
-#         while idx < a:
-#             params.append(list_check[idx][k])
-#             idx += 1
-#         idx = 0
-#         list = []
-#         counter = 0
-#         u = 0
-#         b = len(train)
-#         for j in range(len(train[u])):
-#             t_param = []
-#
-#             while u < a:
-#                 t_param.append(train[u][j])
-#                 u += 1
-#             t_param.append(train[u][j])
-#             for i in range(a):
-#                 if params[i] != t_param[i]:
-#                     counter += 1
-#             if counter == 0:
-#                 list.append((counter, t_param[a]))
-#             else:
-#                 list.append((counter, t_param[a]))
-#             counter = 0
-#             u = 0
-#         list.sort(key=operator.itemgetter(0))
-#
-#         new_list = [x[1] for x in list]
-#         set_labels = set(list_prediction)
-#         label = []
-#         for i in set_labels:
-#             label.append(i)
-#         label.sort()
-#         array = [0] * len(label)
-#         for k in range(5):
-#             for i in range(len(label)):
-#                 if new_list[k] == label[i]:
-#                     array[i] += 1
-#         maximum = max(array)
-#         for i in range(len(array)):
-#             if array[i] == maximum:
-#                 list_knn_result.append(label[i])
-#     calcAccuracy(test, list_knn_result)
+def create_output_file(output, knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy):
+    output.write("Num"+"\t\t"+"DT"+"\t\t"+"KNN"+"\t\t"+"naiveBase"+"\n")
+    for i in range(len(knn_list)):
+        num = i+1
+        output.write(str(num)+"\t\t"+dt_list[i]+"\t\t"+knn_list[i]+"\t\t"+nb_list[i]+"\n")
+    output.write("\t "+" "+str(dt_accuracy)+"\t\t"+str(knn_accuracy)+"\t\t"+str(nb_accuracy))
+
+
 
 def naive_bayes(train, test, list_check, list_prediction):
     list_naive_bayes_result = []
@@ -140,8 +101,8 @@ def naive_bayes(train, test, list_check, list_prediction):
                 list_naive_bayes_result.append(label[1])
         else:
             list_naive_bayes_result.append(label[1])
-    calcAccuracy(test, list_naive_bayes_result)
-
+    accuracy = calcAccuracy(test, list_naive_bayes_result)
+    return list_naive_bayes_result,accuracy
 
 def before_id3(train, test, list_check, list_prediction, tags, defult):
     d_tree = []
@@ -156,14 +117,14 @@ def before_id3(train, test, list_check, list_prediction, tags, defult):
     result, dict_tags_values, list_tracks = check_test(root, tags, train, examples)
     tracks = ramove_repeat_track(list_tracks)
     printer = print_tracks(d_tree[0], dict_tags_values, 1)
-    print(printer)
-    calcAccuracy(test, result)
-    print()
-
+    accuracy = calcAccuracy(test, result)
+    output_tree = open("output_tree_shahar.txt","w+")
+    output_tree.write(printer)
+    output_tree.close()
+    return result,accuracy
 
 def print_tracks(root, dict_tags_values, tab):
     printer = ""
-
     for i, key in enumerate(sorted(root.dict.keys())):
         if i != 0:
             for j in range(tab - 1):
@@ -183,7 +144,6 @@ def print_tracks(root, dict_tags_values, tab):
             printer += print_tracks(next_root, dict_tags_values, tab + 1)
     return printer
 
-
 def ramove_repeat_track(list_tracks):
     tracks = []
     for list in list_tracks:
@@ -199,7 +159,6 @@ def ramove_repeat_track(list_tracks):
             tracks.append(list)
 
     return tracks
-
 
 def check_test(root, tags, train, examples):
     dict_tags_values = {}
@@ -247,16 +206,13 @@ def check_test(root, tags, train, examples):
                     tag = next(iter(temp_root.dict))
                     temp_root = temp_root.dict[tag]
         list_tracks.append(list)
-    print(list_tracks)
     return result, dict_tags_values, list_tracks
-
 
 def get_attributes_order(tags, root, list_attributes):
     temp_root = root
     while temp_root.attribute[0] != None and len(list_attributes) != len(tags) - 1:
         if len(list_attributes) == len(tags) - 1:
             break
-        print(temp_root.attribute[0])
         for i in tags:
             if temp_root.attribute[0] == i:
                 list_attributes.append(i)
@@ -266,7 +222,6 @@ def get_attributes_order(tags, root, list_attributes):
         tag = next(iter(temp_root.dict))
         temp_root = temp_root.dict[tag]
     return list_attributes
-
 
 def id3(train, tags, defult, tree, father, type_developed, father_node=None):
     train_without_decision = []
@@ -327,10 +282,8 @@ def id3(train, tags, defult, tree, father, type_developed, father_node=None):
         for i in range(len_tags):
             new_train[index].append([])
         for i in range(len(train[index])):
-            # print(train[col][i])
             if (train[col][i] == value):
                 for k in range(len(tags)):
-                    # print(train[k][i])
                     new_train[index][k].append(train[k][i])
 
         index += 1
@@ -342,12 +295,10 @@ def id3(train, tags, defult, tree, father, type_developed, father_node=None):
         value = set_type_developed.pop()
         id3(training, tags, defult, tree, best, value, node)
 
-
 def get_values_of_attribute(best, tags, train):
     for i in range(len(tags)):
         if best == tags[i]:
             return set(train[i])
-
 
 def choose_attribute(attributes, examples, list_prediction):
     p_predictions = calc_predictions(list_prediction)
@@ -387,7 +338,6 @@ def choose_attribute(attributes, examples, list_prediction):
 
     return optional_attributes[j]
 
-
 def calc_entropy(p_list):
     entropy = []
     total = sum(p_list)
@@ -402,7 +352,6 @@ def calc_entropy(p_list):
         sum1 += entropy[j]
     return sum1
 
-
 def calc_predictions(list_prediction):
     labels = set(list_prediction)
     list_lables = p_list = []
@@ -416,7 +365,6 @@ def calc_predictions(list_prediction):
             if list_prediction[j] == list_lables[i]:
                 list[i] += 1
     return list
-
 
 def calc_predictions_with_decision(list_prediction, decision):
     labels = set(list_prediction)
@@ -443,7 +391,6 @@ def calc_predictions_with_decision(list_prediction, decision):
                         list[index2][index3] += 1
     return list, list_lables
 
-
 def calc_yes_and_no(list_prediction):
     yes = no = 0
     for j in list_prediction:
@@ -453,7 +400,6 @@ def calc_yes_and_no(list_prediction):
             no += 1
     return yes, no
 
-
 def calcAccuracy(test, list_algo):
     for i in range(len(test)):
         if i == len(test) - 1:
@@ -461,15 +407,12 @@ def calcAccuracy(test, list_algo):
 
     counter = 0
     accuracy = 0
-    # print(range(len(test[0])))
     for i in range(len(test[0])):
         if list_algo[i] == list_prediction[i]:
             counter += 1
     accuracy = float(counter / len(test[0]))
     accuracy = str(round(accuracy, 2))
-    print(accuracy)
     return accuracy
-
 
 def read_file(filename):
     file = open(filename, "r")
@@ -503,11 +446,9 @@ def read_file(filename):
                 tags.append(array[i])
     return tags, attributes
 
-
 def main_function():
     tags, attributes = read_file("train.txt")
     tags_test, tests = read_file("test.txt")
     train_data(tags, attributes, tests)
-
 
 main_function()
