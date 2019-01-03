@@ -19,12 +19,13 @@ def train_data(tags, train, test):
     # test = all test
     # list check = all test but decision column
     # list predection last column of test, the column to compare to
-    output = open("output_shahar.txt","a")
-    k = KNN_algo()
-    knn_list,knn_accuracy = k.hamming_distance(train,test,list_check,list_prediction)
-    nb_list, nb_accuracy = naive_bayes(train,test,list_check,list_prediction)
-    dt_list, dt_accuracy = before_id3(train, test, list_check, list_prediction, tags, defult=0)
-    create_output_file(output ,knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy)
+    #output = open("output_shahar.txt","a")
+    #k = KNN_algo()
+    #knn_list,knn_accuracy = k.hamming_distance(train,test,list_check,list_prediction)
+    nb_list, nb_accuracy = naive_bayes(train,tags,test,list_check,list_prediction)
+    print(nb_accuracy)
+    #dt_list, dt_accuracy = before_id3(train, test, list_check, list_prediction, tags, defult=0)
+    #create_output_file(output ,knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy)
 
 
 def create_output_file(output, knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy):
@@ -34,9 +35,14 @@ def create_output_file(output, knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list
         output.write(str(num)+"\t\t"+dt_list[i]+"\t\t"+knn_list[i]+"\t\t"+nb_list[i]+"\n")
     output.write("\t "+" "+str(dt_accuracy)+"\t\t"+str(knn_accuracy)+"\t\t"+str(nb_accuracy))
 
-
-
-def naive_bayes(train, test, list_check, list_prediction):
+def naive_bayes(train, tags, test, list_check, list_prediction):
+    dict_tags_values = {}
+    k_sets =[]
+    for i in range(len(tags) - 1):
+        set_values = set(train[i])
+        list_values = set_values
+        dict_tags_values[tags[i]] = list_values
+        k_sets.append(len(set_values))
     list_naive_bayes_result = []
     yes = no = p_train_yes = p_train_no = idx = 0
     set_labels = set(list_prediction)
@@ -84,8 +90,12 @@ def naive_bayes(train, test, list_check, list_prediction):
         temp_yes = 1
         temp_no = 1
         for i in range(a):
-            prob_yes[i] = float(counter_yes[i] / yes)
-            prob_no[i] = float(counter_no[i] / no)
+            prob_yes[i] = float(counter_yes[i]+1 / yes+k_sets[i])
+            prob_no[i] = float(counter_no[i]+1 / no+k_sets[i])
+            #לפני החלקה
+            #prob_yes[i] = float(counter_yes[i] / yes)
+            #prob_no[i] = float(counter_no[i] / no)
+
         for i in range(a):
             temp_yes *= prob_yes[i]
             temp_no *= prob_no[i]
