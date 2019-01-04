@@ -1,9 +1,6 @@
-import pandas as pd
-import numpy as np
 import math as math
 from KNN import KNN_algo
 import DTL as dtl
-import operator as operator
 from DTL import Node
 from class_node import ClassNode
 
@@ -19,13 +16,14 @@ def train_data(tags, train, test):
     # test = all test
     # list check = all test but decision column
     # list predection last column of test, the column to compare to
-    #output = open("output_shahar.txt","a")
-    #k = KNN_algo()
-    #knn_list,knn_accuracy = k.hamming_distance(train,test,list_check,list_prediction)
+    output = open("output_final.txt","a")
+    k = KNN_algo()
+    k = KNN_algo()
+    knn_list,knn_accuracy = k.hamming_distance(train,test,list_check,list_prediction)
     nb_list, nb_accuracy = naive_bayes(train,tags,test,list_check,list_prediction)
-    print(nb_accuracy)
-    #dt_list, dt_accuracy = before_id3(train, test, list_check, list_prediction, tags, defult=0)
-    #create_output_file(output ,knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy)
+    #print(nb_accuracy)
+    dt_list, dt_accuracy = before_id3(train, test, list_check, list_prediction, tags, defult=0)
+    create_output_file(output ,knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy)
 
 
 def create_output_file(output, knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy):
@@ -128,7 +126,7 @@ def before_id3(train, test, list_check, list_prediction, tags, defult):
     tracks = ramove_repeat_track(list_tracks)
     printer = print_tracks(d_tree[0], dict_tags_values, 1)
     accuracy = calcAccuracy(test, result)
-    output_tree = open("output_tree_shahar.txt","w+")
+    output_tree = open("output_tree_final.txt","w+")
     output_tree.write(printer)
     output_tree.close()
     return result,accuracy
@@ -140,15 +138,15 @@ def print_tracks(root, dict_tags_values, tab):
             for j in range(tab - 1):
                 printer += '\t'
         next_root = root.dict[key]
-        if type(next_root.attribute) is str:
-            if next_root.attribute == 'no' or next_root.attribute == 'yes':
-                printer += "|" + root.attribute[0] + "=" + key + ":" + next_root.attribute + '\n'
+        #if type(next_root.attribute) is str:
+        if next_root.attribute == 'no' or next_root.attribute == 'yes':
+            printer += "|" + root.attribute + "=" + key + ":" + next_root.attribute + '\n'
 
         else:
             if tab == 1:
-                printer += root.attribute[0] + "=" + key + "\n"
+                printer += root.attribute + "=" + key + "\n"
             else:
-                printer += "|" + root.attribute[0] + "=" + key + '\n'
+                printer += "|" + root.attribute + "=" + key + '\n'
             for i in range(tab):
                 printer += '\t'
             printer += print_tracks(next_root, dict_tags_values, tab + 1)
@@ -201,7 +199,7 @@ def check_test(root, tags, train, examples):
         temp_root = root
         prev = temp_root
         while any(temp_root.dict) != False:
-            list.append(temp_root.attribute[0])
+            list.append(temp_root.attribute)
 
             for i in current:
                 list.append(i)
@@ -212,7 +210,7 @@ def check_test(root, tags, train, examples):
                     break
                 else:
                     prev = temp_root
-                    list.append(prev.attribute[0])
+                    list.append(prev.attribute)
                     tag = next(iter(temp_root.dict))
                     temp_root = temp_root.dict[tag]
         list_tracks.append(list)
@@ -220,11 +218,11 @@ def check_test(root, tags, train, examples):
 
 def get_attributes_order(tags, root, list_attributes):
     temp_root = root
-    while temp_root.attribute[0] != None and len(list_attributes) != len(tags) - 1:
+    while temp_root.attribute != None and len(list_attributes) != len(tags) - 1:
         if len(list_attributes) == len(tags) - 1:
             break
         for i in tags:
-            if temp_root.attribute[0] == i:
+            if temp_root.attribute == i:
                 list_attributes.append(i)
                 break
         if len(list_attributes) == len(tags) - 1:
@@ -267,7 +265,8 @@ def id3(train, tags, defult, tree, father, type_developed, father_node=None):
     new_tags = []
     labels = []
     for i in tags:
-        if best[0] == i:
+        #if best[0] == i:
+        if best == i:
             values = set(train[k])
             for i in values:
                 labels.append(i)
@@ -343,10 +342,18 @@ def choose_attribute(attributes, examples, list_prediction):
         attributes_gain.append(sumEnt)
         optional_attributes.append((attributes[j], attributes_gain[j]))
         j += 1
-    j = 0
-    optional_attributes.sort(reverse=True, key=operator.itemgetter(1))
+    kk = 0
+    sort_op = []
+    x= range(len(optional_attributes))
+    for j in x:
+        m = max(optional_attributes, key=lambda t: t[1])
+        sort_op.append(m)
+        optional_attributes.remove(m)
 
-    return optional_attributes[j]
+    att_no_gain = []
+    for i in range(len(sort_op)):
+        att_no_gain.append(sort_op[i][0])
+    return att_no_gain[kk]
 
 def calc_entropy(p_list):
     entropy = []

@@ -1,6 +1,4 @@
-import pandas as pd
-import numpy as np
-import operator as operator
+
 class KNN_algo:
 
     def __init__(self):
@@ -49,9 +47,15 @@ class KNN_algo:
                     list.append((counter, t_param[a]))
                 counter = 0
                 u = 0
-            list.sort(key=operator.itemgetter(0))
+            listtry = list
 
-            new_list = [x[1] for x in list]
+            sort_knn = []
+            x = range(len(listtry))
+            for j in x:
+                m = min(listtry, key=lambda t: t[0])
+                sort_knn.append(m)
+                listtry.remove(m)
+            new_list = [x[1] for x in sort_knn]
             set_labels = set(list_prediction)
             label = []
             for i in set_labels:
