@@ -5,6 +5,10 @@ from DTL import Node
 from class_node import ClassNode
 
 
+# train = all data
+# test = all test
+# list check = all test but decision column
+# list predection last column of test, the column to compare to
 def train_data(tags, train, test):
     list_check = []
     for i in range(len(train)):
@@ -12,20 +16,15 @@ def train_data(tags, train, test):
             list_prediction = test[i]
         else:
             list_check.append(test[i])
-    # train = all data
-    # test = all test
-    # list check = all test but decision column
-    # list predection last column of test, the column to compare to
-    output = open("output_final.txt","a")
+    output = open("output.txt","a")
     k = KNN_algo()
     k = KNN_algo()
     knn_list,knn_accuracy = k.hamming_distance(train,test,list_check,list_prediction)
     nb_list, nb_accuracy = naive_bayes(train,tags,test,list_check,list_prediction)
-    #print(nb_accuracy)
     dt_list, dt_accuracy = before_id3(train, test, list_check, list_prediction, tags, defult=0)
     create_output_file(output ,knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy)
 
-
+# this function creates the output file with all the predictions and the accurisies.
 def create_output_file(output, knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list,dt_accuracy):
     output.write("Num"+"\t\t"+"DT"+"\t\t"+"KNN"+"\t\t"+"naiveBase"+"\n")
     for i in range(len(knn_list)):
@@ -33,6 +32,11 @@ def create_output_file(output, knn_list,knn_accuracy,nb_list,nb_accuracy,dt_list
         output.write(str(num)+"\t\t"+dt_list[i]+"\t\t"+knn_list[i]+"\t\t"+nb_list[i]+"\n")
     output.write("\t "+" "+str(dt_accuracy)+"\t\t"+str(knn_accuracy)+"\t\t"+str(nb_accuracy))
 
+
+# this function is the model for naive bais. for each example of the test it calculates the probability,
+# that the examples will have its values and also one of the classifictions that are avalable.
+# and than choose the biggest probability out of the options of the classification.
+# then we calculate the accuracy by using the test.
 def naive_bayes(train, tags, test, list_check, list_prediction):
     dict_tags_values = {}
     k_sets =[]
@@ -112,6 +116,9 @@ def naive_bayes(train, tags, test, list_check, list_prediction):
     accuracy = calcAccuracy(test, list_naive_bayes_result)
     return list_naive_bayes_result,accuracy
 
+
+# this function calls to create the decision tree and then check the prediction of each example of
+# the test by the tree created, and the we calculate the accuracy.
 def before_id3(train, test, list_check, list_prediction, tags, defult):
     d_tree = []
     id3(train, tags, defult, d_tree, None, None, None)
@@ -126,11 +133,12 @@ def before_id3(train, test, list_check, list_prediction, tags, defult):
     tracks = ramove_repeat_track(list_tracks)
     printer = print_tracks(d_tree[0], dict_tags_values, 1)
     accuracy = calcAccuracy(test, result)
-    output_tree = open("output_tree_final.txt","w+")
+    output_tree = open("output_tree.txt","w+")
     output_tree.write(printer)
     output_tree.close()
     return result,accuracy
 
+# this function prints the tree to the output tree file. it concatinates all to one string
 def print_tracks(root, dict_tags_values, tab):
     printer = ""
     for i, key in enumerate(sorted(root.dict.keys())):
@@ -138,7 +146,6 @@ def print_tracks(root, dict_tags_values, tab):
             for j in range(tab - 1):
                 printer += '\t'
         next_root = root.dict[key]
-        #if type(next_root.attribute) is str:
         if next_root.attribute == 'no' or next_root.attribute == 'yes':
             printer += "|" + root.attribute + "=" + key + ":" + next_root.attribute + '\n'
 
@@ -152,6 +159,7 @@ def print_tracks(root, dict_tags_values, tab):
             printer += print_tracks(next_root, dict_tags_values, tab + 1)
     return printer
 
+# this function is removing repeted tracks, it is not used.
 def ramove_repeat_track(list_tracks):
     tracks = []
     for list in list_tracks:
@@ -168,6 +176,8 @@ def ramove_repeat_track(list_tracks):
 
     return tracks
 
+
+# this function checks the test examples on the decision tree that we made.
 def check_test(root, tags, train, examples):
     dict_tags_values = {}
     list_values = []
@@ -216,6 +226,7 @@ def check_test(root, tags, train, examples):
         list_tracks.append(list)
     return result, dict_tags_values, list_tracks
 
+# this function gets the order of the attributes as they shown in the tree.
 def get_attributes_order(tags, root, list_attributes):
     temp_root = root
     while temp_root.attribute != None and len(list_attributes) != len(tags) - 1:
@@ -231,6 +242,11 @@ def get_attributes_order(tags, root, list_attributes):
         temp_root = temp_root.dict[tag]
     return list_attributes
 
+# this function creates the decision tree, by choosing the atrributes by theur entropy and biggest gain.
+# it takes the best attribute in each time and then recursivly enter the function again with a new training set that
+# does not recognise the feature that we allready signed as best attribute.
+# at the end if all exemples have one type of attribute it returns the majority.
+# or if all have the same classifiction it returns the one classification that is avalable.
 def id3(train, tags, defult, tree, father, type_developed, father_node=None):
     train_without_decision = []
     for i in range(len(train)):
@@ -260,12 +276,10 @@ def id3(train, tags, defult, tree, father, type_developed, father_node=None):
             return
 
     best = choose_attribute(tags, train, list_prediction)
-    # לייצר אטרביוט נוד שמכיל את בסט כאטריובט וכנכנסים לרקורסיה להצביע על הנוד אטריביוט הזה
     k = col = 0
     new_tags = []
     labels = []
     for i in tags:
-        #if best[0] == i:
         if best == i:
             values = set(train[k])
             for i in values:
@@ -304,11 +318,15 @@ def id3(train, tags, defult, tree, father, type_developed, father_node=None):
         value = set_type_developed.pop()
         id3(training, tags, defult, tree, best, value, node)
 
+
+# this function returns the attributes values
 def get_values_of_attribute(best, tags, train):
     for i in range(len(tags)):
         if best == tags[i]:
             return set(train[i])
 
+# this function return the best attribute after checking the entropy of each of the attribute values
+# also calculating the gain of the attribute.
 def choose_attribute(attributes, examples, list_prediction):
     p_predictions = calc_predictions(list_prediction)
     len_sets = []
@@ -355,6 +373,7 @@ def choose_attribute(attributes, examples, list_prediction):
         att_no_gain.append(sort_op[i][0])
     return att_no_gain[kk]
 
+# this function calculates the entropy of all values and returns the total entropy of the value.
 def calc_entropy(p_list):
     entropy = []
     total = sum(p_list)
@@ -369,6 +388,7 @@ def calc_entropy(p_list):
         sum1 += entropy[j]
     return sum1
 
+# this function calculates how many we have
 def calc_predictions(list_prediction):
     labels = set(list_prediction)
     list_lables = p_list = []
@@ -383,6 +403,7 @@ def calc_predictions(list_prediction):
                 list[i] += 1
     return list
 
+# this function calculates how many we have out of each calsification
 def calc_predictions_with_decision(list_prediction, decision):
     labels = set(list_prediction)
     decisions = set(decision)
@@ -408,6 +429,7 @@ def calc_predictions_with_decision(list_prediction, decision):
                         list[index2][index3] += 1
     return list, list_lables
 
+# this function calculates how many yes and no we have.
 def calc_yes_and_no(list_prediction):
     yes = no = 0
     for j in list_prediction:
@@ -417,6 +439,7 @@ def calc_yes_and_no(list_prediction):
             no += 1
     return yes, no
 
+# this function calcs the accuracy of the model
 def calcAccuracy(test, list_algo):
     for i in range(len(test)):
         if i == len(test) - 1:
@@ -431,6 +454,7 @@ def calcAccuracy(test, list_algo):
     accuracy = str(round(accuracy, 2))
     return accuracy
 
+# this function reads the file and make the train and the test and the tags
 def read_file(filename):
     file = open(filename, "r")
     i = 0
@@ -463,6 +487,7 @@ def read_file(filename):
                 tags.append(array[i])
     return tags, attributes
 
+#this is the main function
 def main_function():
     tags, attributes = read_file("train.txt")
     tags_test, tests = read_file("test.txt")

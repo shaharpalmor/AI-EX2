@@ -1,8 +1,12 @@
 
+# class knn - chosse the k nearest neigbors and classify each of the examples given/
 class KNN_algo:
 
     def __init__(self):
         pass
+
+    # this function calculates the accuracy of the test. it takes the two vectors and
+    # in how much examples we were correct due to our model.
     def calcAccuracy(self, test, list_algo):
         for i in range(len(test)):
             if i == len(test) - 1:
@@ -16,10 +20,12 @@ class KNN_algo:
         accuracy = float(counter / len(test[0]))
         return accuracy
 
+    # this function calculates the hamming distance for each examples of the test and the
+    # train. the distance is calculated by two different strings as 1, and zero for similarity.
+    # we loop all the train for each example and take the 5 nearest neigbors.
     def hamming_distance(self, train, test, list_check, list_prediction):
         idx = 0
         list_knn_result = []
-        # print(list_knn_result)
         a = len(list_check)
         for k in range(len(list_check[idx])):
             params = []
