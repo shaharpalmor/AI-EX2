@@ -92,11 +92,11 @@ def naive_bayes(train, tags, test, list_check, list_prediction):
         temp_yes = 1
         temp_no = 1
         for i in range(a):
-            prob_yes[i] = float(counter_yes[i]+1 / yes+k_sets[i])
-            prob_no[i] = float(counter_no[i]+1 / no+k_sets[i])
+            #prob_yes[i] = float(counter_yes[i]+1 / yes+k_sets[i])
+            #prob_no[i] = float(counter_no[i]+1 / no+k_sets[i])
             #לפני החלקה
-            #prob_yes[i] = float(counter_yes[i] / yes)
-            #prob_no[i] = float(counter_no[i] / no)
+            prob_yes[i] = float(counter_yes[i] / yes)
+            prob_no[i] = float(counter_no[i] / no)
 
         for i in range(a):
             temp_yes *= prob_yes[i]
@@ -131,7 +131,7 @@ def before_id3(train, test, list_check, list_prediction, tags, defult):
     # result is the prediction of the decision tree
     result, dict_tags_values, list_tracks = check_test(root, tags, train, examples)
     tracks = ramove_repeat_track(list_tracks)
-    printer = print_tracks(d_tree[0], dict_tags_values, 1)
+    printer = print_tracks(d_tree[0], dict_tags_values, 1,list_prediction)
     accuracy = calcAccuracy(test, result)
     output_tree = open("output_tree.txt","w+")
     output_tree.write(printer)
@@ -139,14 +139,21 @@ def before_id3(train, test, list_check, list_prediction, tags, defult):
     return result,accuracy
 
 # this function prints the tree to the output tree file. it concatinates all to one string
-def print_tracks(root, dict_tags_values, tab):
+def print_tracks(root, dict_tags_values, tab,list_prediction):
     printer = ""
     for i, key in enumerate(sorted(root.dict.keys())):
         if i != 0:
             for j in range(tab - 1):
                 printer += '\t'
         next_root = root.dict[key]
-        if next_root.attribute == 'no' or next_root.attribute == 'yes':
+        set_lables = set(list_prediction)
+        list_lables =[]
+        sorted(set_lables)
+        length = len(set_lables)
+        for i in range(length):
+            list_lables.append(set_lables.pop())
+        #if next_root.attribute == 'no' or next_root.attribute == 'yes':
+        if next_root.attribute == list_lables[0] or next_root.attribute == list_lables[1]:
             printer += "|" + root.attribute + "=" + key + ":" + next_root.attribute + '\n'
 
         else:
@@ -156,7 +163,7 @@ def print_tracks(root, dict_tags_values, tab):
                 printer += "|" + root.attribute + "=" + key + '\n'
             for i in range(tab):
                 printer += '\t'
-            printer += print_tracks(next_root, dict_tags_values, tab + 1)
+            printer += print_tracks(next_root, dict_tags_values, tab + 1,list_prediction)
     return printer
 
 # this function is removing repeted tracks, it is not used.
@@ -214,6 +221,7 @@ def check_test(root, tags, train, examples):
             for i in current:
                 list.append(i)
                 temp_root = prev.dict[i]
+
                 if temp_root.attribute == 'yes' or temp_root.attribute == 'no':
                     list.append(temp_root.attribute)
                     result.append(temp_root.attribute)

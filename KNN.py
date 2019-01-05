@@ -18,6 +18,8 @@ class KNN_algo:
             if list_algo[i] == list_prediction[i]:
                 counter += 1
         accuracy = float(counter / len(test[0]))
+        accuracy = str(round(accuracy, 2))
+
         return accuracy
 
     # this function calculates the hamming distance for each examples of the test and the
