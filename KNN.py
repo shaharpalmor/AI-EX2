@@ -19,7 +19,6 @@ class KNN_algo:
                 counter += 1
         accuracy = float(counter / len(test[0]))
         accuracy = str(round(accuracy, 2))
-
         return accuracy
 
     # this function calculates the hamming distance for each examples of the test and the

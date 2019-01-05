@@ -155,7 +155,6 @@ def print_tracks(root, dict_tags_values, tab,list_prediction):
         #if next_root.attribute == 'no' or next_root.attribute == 'yes':
         if next_root.attribute == list_lables[0] or next_root.attribute == list_lables[1]:
             printer += "|" + root.attribute + "=" + key + ":" + next_root.attribute + '\n'
-
         else:
             if tab == 1:
                 printer += root.attribute + "=" + key + "\n"
