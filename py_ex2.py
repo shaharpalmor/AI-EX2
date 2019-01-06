@@ -17,7 +17,7 @@ def train_data(tags, train, test):
         else:
             list_check.append(test[i])
     output = open("output.txt","a")
-    k = KNN_algo()
+    #k = KNN_algo()
     k = KNN_algo()
     knn_list,knn_accuracy = k.hamming_distance(train,test,list_check,list_prediction)
     nb_list, nb_accuracy = naive_bayes(train,tags,test,list_check,list_prediction)
@@ -92,11 +92,11 @@ def naive_bayes(train, tags, test, list_check, list_prediction):
         temp_yes = 1
         temp_no = 1
         for i in range(a):
-            #prob_yes[i] = float(counter_yes[i]+1 / yes+k_sets[i])
-            #prob_no[i] = float(counter_no[i]+1 / no+k_sets[i])
+            prob_yes[i] = float(counter_yes[i]+1) / (yes+k_sets[i])
+            prob_no[i] = float(counter_no[i]+1) / (no+k_sets[i])
             #לפני החלקה
-            prob_yes[i] = float(counter_yes[i] / yes)
-            prob_no[i] = float(counter_no[i] / no)
+            #prob_yes[i] = float(counter_yes[i] / yes)
+            #prob_no[i] = float(counter_no[i] / no)
 
         for i in range(a):
             temp_yes *= prob_yes[i]
