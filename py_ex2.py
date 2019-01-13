@@ -17,7 +17,7 @@ def train_data(tags, train, test):
         else:
             list_check.append(test[i])
     output = open("output.txt","a")
-    #k = KNN_algo()
+    k = KNN_algo()
     k = KNN_algo()
     knn_list,knn_accuracy = k.hamming_distance(train,test,list_check,list_prediction)
     nb_list, nb_accuracy = naive_bayes(train,tags,test,list_check,list_prediction)
@@ -121,7 +121,7 @@ def naive_bayes(train, tags, test, list_check, list_prediction):
 # the test by the tree created, and the we calculate the accuracy.
 def before_id3(train, test, list_check, list_prediction, tags, defult):
     d_tree = []
-    id3(train, tags, defult, d_tree, None, None, None)
+    id3(train, tags, len(tags) - 1, defult, d_tree, None, None, None)
     root = d_tree[0]
     examples = []
     # check the test on the root of the tree
@@ -129,14 +129,60 @@ def before_id3(train, test, list_check, list_prediction, tags, defult):
         variable = [x[i] for x in list_check]
         examples.append(variable)
     # result is the prediction of the decision tree
-    result, dict_tags_values, list_tracks = check_test(root, tags, train, examples)
-    tracks = ramove_repeat_track(list_tracks)
-    printer = print_tracks(d_tree[0], dict_tags_values, 1,list_prediction)
+    result, dict_tags_values = letsTag(root, tags, train, examples,list_prediction)
+    #result, dict_tags_values, list_tracks = check_test(root, tags, train, examples,list_prediction)
+    #tracks = ramove_repeat_track(list_tracks)
+    printer = print_tracks(root, dict_tags_values, 1,list_prediction)
     accuracy = calcAccuracy(test, result)
     output_tree = open("output_tree.txt","w+")
     output_tree.write(printer)
     output_tree.close()
     return result,accuracy
+
+def letsTag(root, tags, train, examples,list_prediction):
+    dict_tags_values = {}
+    list_values = []
+    set_lables = set(list_prediction)
+    list_lables = []
+    sorted(set_lables)
+    length = len(set_lables)
+    for i in range(length):
+        list_lables.append(set_lables.pop())
+
+    result = []
+    for i in range(len(tags) - 1):
+        set_values = set(train[i])
+        list_values = set_values
+        dict_tags_values[tags[i]] = list_values
+    for example in examples:
+        classification = tag_one_example(tags,example,root,dict_tags_values,list_lables)
+        result.append(classification)
+    return result, dict_tags_values
+
+def tag_one_example(tags,example,root,dict_tags_values,labels):
+    list = []
+    for i in range(len(tags)-1):
+        list.append((tags[i],example[i]))
+    flag = 0
+    temp_root = root
+    while temp_root.attribute != labels[0] and temp_root.attribute != labels[1]:
+        for key, values in dict_tags_values.items():  # for name, age in dictionary.iteritems():  (for Python 2.x)
+            if temp_root.attribute == labels[0] or temp_root.attribute == labels[1]:
+                break
+            else:
+                if key == temp_root.attribute:
+                    for pair in list:
+                        if pair[0] == key:
+                            if pair[1] in temp_root.dict.values():
+                                temp_root = temp_root.dict[pair[1]]
+                                break
+                            else:
+                                 return labels[0]
+
+            if temp_root.attribute == labels[0] or temp_root.attribute == labels[1]:
+                break
+    return temp_root.attribute
+
 
 # this function prints the tree to the output tree file. it concatinates all to one string
 def print_tracks(root, dict_tags_values, tab,list_prediction):
@@ -184,9 +230,16 @@ def ramove_repeat_track(list_tracks):
 
 
 # this function checks the test examples on the decision tree that we made.
-def check_test(root, tags, train, examples):
+def check_test(root, tags, train, examples,list_prediction):
     dict_tags_values = {}
     list_values = []
+    set_lables = set(list_prediction)
+    list_lables = []
+    sorted(set_lables)
+    length = len(set_lables)
+    for i in range(length):
+        list_lables.append(set_lables.pop())
+
     result = []
     for i in range(len(tags) - 1):
         set_values = set(train[i])
@@ -221,7 +274,7 @@ def check_test(root, tags, train, examples):
                 list.append(i)
                 temp_root = prev.dict[i]
 
-                if temp_root.attribute == 'yes' or temp_root.attribute == 'no':
+                if temp_root.attribute == list_lables[1] or temp_root.attribute == list_lables[0]:
                     list.append(temp_root.attribute)
                     result.append(temp_root.attribute)
                     break
@@ -254,8 +307,16 @@ def get_attributes_order(tags, root, list_attributes):
 # does not recognise the feature that we allready signed as best attribute.
 # at the end if all exemples have one type of attribute it returns the majority.
 # or if all have the same classifiction it returns the one classification that is avalable.
-def id3(train, tags, defult, tree, father, type_developed, father_node=None):
+def id3(train, tags, relevant_tags, defult, tree, father, type_developed, father_node=None):
     train_without_decision = []
+
+    # no examples
+    if len(train) == 0:
+        node = Node(father, type_developed, defult, [])
+        father_node[type_developed] = node
+        return
+
+
     for i in range(len(train)):
         if i == len(train) - 1:
             # classify of last column in train
@@ -276,13 +337,27 @@ def id3(train, tags, defult, tree, father, type_developed, father_node=None):
             defult = label[i]
     current_examples = train
 
+    # if all examples have the same tiug
     for i in labels_with_nums:
         if i[1] == 0:
-            class_node = ClassNode(i[0], father_node)
-            father_node[type_developed] = class_node
+            node = Node(father, type_developed, i[0], [])
+            father_node[type_developed] = node
             return
 
-    best = choose_attribute(tags, train, list_prediction)
+    #if no attributes left
+    if relevant_tags == 0:
+        majority_tag = labels_with_nums[0][0]
+        majority = labels_with_nums[0][1]
+        for l, num in labels_with_nums:
+            if num > majority:
+                majority = num
+                majority_tag = l
+        #class_node = ClassNode(majority_tag, father_node)
+        node = Node(father, type_developed, majority_tag, [])
+        father_node.dict[type_developed] = node
+        return
+
+    best = choose_attribute(tags, train, list_prediction,defult)
     k = col = 0
     new_tags = []
     labels = []
@@ -311,7 +386,7 @@ def id3(train, tags, defult, tree, father, type_developed, father_node=None):
     for value in labels:
         for i in range(len_tags):
             new_train[index].append([])
-        for i in range(len(train[index])):
+        for i in range(len(train[0])):
             if (train[col][i] == value):
                 for k in range(len(tags)):
                     new_train[index][k].append(train[k][i])
@@ -323,7 +398,8 @@ def id3(train, tags, defult, tree, father, type_developed, father_node=None):
         set_values = get_values_of_attribute(best, tags, train)
         set_type_developed = set(training[col])
         value = set_type_developed.pop()
-        id3(training, tags, defult, tree, best, value, node)
+        set_typed = set_type_developed
+        id3(training, tags, relevant_tags - 1, defult, tree, best, value, node)
 
 
 # this function returns the attributes values
@@ -334,12 +410,29 @@ def get_values_of_attribute(best, tags, train):
 
 # this function return the best attribute after checking the entropy of each of the attribute values
 # also calculating the gain of the attribute.
-def choose_attribute(attributes, examples, list_prediction):
+def choose_attribute(attributes, examples, list_prediction,defult):
     p_predictions = calc_predictions(list_prediction)
     len_sets = []
     for i in range(len(attributes) - 1):
         setI = set(examples[i])
         len_sets.append(len(setI))
+
+    if len(p_predictions) == 2 and p_predictions[0] == p_predictions[1]:
+        return defult
+
+    if len(p_predictions) == 1:
+        label = []
+        maxVal = max(p_predictions)
+        for i in set(list_prediction):
+            label.append(i)
+        label.sort()
+        labels_with_nums = []
+        for i in range(len(label)):
+            labels_with_nums.append((label[i], p_predictions[i]))
+            if maxVal == p_predictions[i]:
+                defult = label[i]
+                return defult
+
     if sum(len_sets) == len(attributes) - 1:
         label = []
         maxVal = max(p_predictions)
@@ -361,6 +454,8 @@ def choose_attribute(attributes, examples, list_prediction):
         list_att, list_labels = calc_predictions_with_decision(example, list_prediction)
         sumEnt = entropy
         for item in list_att:
+            print(sum(item))
+            print(len(examples[0]))
             p = sum(item) / len(examples[0])
             sub_entropy = calc_entropy(item)
             sumEnt += -p * sub_entropy
